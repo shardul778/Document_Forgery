@@ -6,9 +6,7 @@ import pytesseract
 import re
 from typing import Dict, List, Any
 import logging
-from ml_model import get_document_forgery_model
-import torch
-import torch.nn as nn
+from ml_model_svm_rf import get_document_forgery_model
 import os
 
 logging.basicConfig(level=logging.INFO)
@@ -36,6 +34,13 @@ if os.name == 'nt':  # Windows
             logger.warning("Tesseract OCR not found. OCR features will be limited.")
             logger.warning("Install Tesseract from: https://github.com/UB-Mannheim/tesseract/wiki")
             logger.warning("Or set TESSERACT_CMD environment variable to the tesseract.exe path")
+    
+    # Verify Tesseract is working
+    try:
+        version = pytesseract.get_tesseract_version()
+        logger.info(f"Tesseract OCR v{version} is ready")
+    except Exception as e:
+        logger.error(f"Tesseract OCR verification failed: {e}")
 
 class DocumentAnalyzer:
     def __init__(self):
