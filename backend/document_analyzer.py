@@ -76,7 +76,7 @@ class DocumentAnalyzer:
             ])
             
             # Predict using ML model (with proper calibration)
-            prediction, confidence = self.model.predict(combined_features)
+            prediction, confidence, model_details = self.model.predict(combined_features)
             
             # Get detection details (only if forged)
             detection_details = []
@@ -92,7 +92,7 @@ class DocumentAnalyzer:
                 }]
             
             # Get model metrics
-            metrics = self.model.get_metrics()
+            metrics = self.model.get_model_info()
             
             result = {
                 "is_forged": bool(prediction),
