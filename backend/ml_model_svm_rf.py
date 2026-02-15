@@ -63,8 +63,8 @@ class DocumentForgerySVM_RF:
         self.svm_weight = 0.5
         self.rf_weight = 0.5
         
-        # Forgery threshold
-        self.forgery_threshold = 0.65
+        # Forgery threshold (made less aggressive to reduce false positives)
+        self.forgery_threshold = 0.85
         
         # Load trained models if available
         self._load_models()
@@ -150,6 +150,12 @@ class DocumentForgerySVM_RF:
             if features.ndim == 1:
                 features = features.reshape(1, -1)
             
+            # Check if models are properly trained
+            if not (os.path.exists(os.path.join(self.model_dir, "svm_model.pkl")) and 
+                   os.path.exists(os.path.join(self.model_dir, "rf_model.pkl"))):
+                logger.warning("Models not trained - using conservative prediction")
+                return 0, 0.6, {"fallback": "not_trained", "reason": "Models not trained"}
+            
             # Scale features
             if self.scaler is not None:
                 features_scaled = self.scaler.transform(features)
@@ -166,8 +172,14 @@ class DocumentForgerySVM_RF:
             # Get confidence for forged class (class 1)
             forged_confidence = ensemble_proba[1]
             
-            # Apply threshold
-            prediction = 1 if forged_confidence >= self.forgery_threshold else 0
+            # Apply threshold with safety margin for edge cases
+            if forged_confidence >= 0.95:  # Very high confidence
+                prediction = 1
+            elif forged_confidence <= 0.15:  # Very low confidence
+                prediction = 0
+            else:
+                # For medium confidence, be more conservative
+                prediction = 1 if forged_confidence >= self.forgery_threshold else 0
             
             # Prepare details
             details = {
@@ -179,19 +191,21 @@ class DocumentForgerySVM_RF:
                 "threshold": self.forgery_threshold,
                 "svm_metrics": self.svm_metrics,
                 "rf_metrics": self.rf_metrics,
-                "features_used": len(features[0])
+                "features_used": len(features[0]),
+                "prediction_logic": "conservative" if 0.15 < forged_confidence < 0.95 else "direct"
             }
             
             return prediction, forged_confidence, details
             
         except Exception as e:
             logger.error(f"Prediction error: {e}")
-            # Fallback to random prediction
-            prediction = np.random.choice([0, 1])
-            confidence = np.random.uniform(0.5, 0.9)
+            # Conservative fallback - assume authentic unless very strong evidence
+            prediction = 0  # Default to authentic
+            confidence = 0.5  # Neutral confidence
             details = {
                 "error": str(e),
                 "fallback": True,
+                "fallback_reason": "Error in prediction - defaulting to authentic",
                 "svm_metrics": self.svm_metrics,
                 "rf_metrics": self.rf_metrics
             }

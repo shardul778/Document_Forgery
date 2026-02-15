@@ -442,13 +442,13 @@ class DocumentAnalyzer:
                 edge_density = image_features[30]
                 edge_variance = image_features[31]
                 
-                if edge_density < 0.15:
+                if edge_density < 0.10:  # Made more strict
                     details.append({
                         "type": "Edge Detection",
                         "description": f"Very low edge density ({edge_density:.3f}) - document may be blurred or manipulated",
                         "confidence": 0.75
                     })
-                elif edge_variance > 0.5:
+                elif edge_variance > 0.7:  # Made more strict
                     details.append({
                         "type": "Edge Consistency",
                         "description": f"Inconsistent edge patterns detected (variance: {edge_variance:.3f}) - possible cut-and-paste operations",
@@ -458,7 +458,7 @@ class DocumentAnalyzer:
             # 3. Texture Analysis
             if len(image_features) > 34:
                 texture_consistency = image_features[34]
-                if texture_consistency > 0.6:
+                if texture_consistency > 0.8:  # Made more strict
                     details.append({
                         "type": "Texture Analysis",
                         "description": f"Inconsistent texture patterns detected (score: {texture_consistency:.3f}) - possible image editing",
