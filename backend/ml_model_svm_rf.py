@@ -63,8 +63,8 @@ class DocumentForgerySVM_RF:
         self.svm_weight = 0.5
         self.rf_weight = 0.5
         
-        # Forgery threshold (made less aggressive to reduce false positives)
-        self.forgery_threshold = 0.85
+        # Forgery threshold (made very conservative to reduce false positives)
+        self.forgery_threshold = 0.95
         
         # Load trained models if available
         self._load_models()
@@ -172,13 +172,13 @@ class DocumentForgerySVM_RF:
             # Get confidence for forged class (class 1)
             forged_confidence = ensemble_proba[1]
             
-            # Apply threshold with safety margin for edge cases
-            if forged_confidence >= 0.95:  # Very high confidence
+            # Apply threshold with safety margin and bias towards authentic
+            if forged_confidence >= 0.98:  # Very high confidence required
                 prediction = 1
-            elif forged_confidence <= 0.15:  # Very low confidence
+            elif forged_confidence <= 0.20:  # Low confidence = authentic
                 prediction = 0
             else:
-                # For medium confidence, be more conservative
+                # For medium confidence, be very conservative (bias towards authentic)
                 prediction = 1 if forged_confidence >= self.forgery_threshold else 0
             
             # Prepare details

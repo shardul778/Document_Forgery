@@ -17,71 +17,71 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def generate_realistic_data(n_samples=2000):
-    """Generate more realistic training data that matches real document characteristics"""
+    """Generate more realistic training data with overlap to prevent overfitting"""
     logger.info(f"Generating {n_samples} realistic samples...")
     
-    # Generate authentic documents (80% of data - more realistic ratio)
-    n_authentic = int(0.8 * n_samples)
+    # Generate authentic documents (70% of data - more balanced)
+    n_authentic = int(0.7 * n_samples)
     n_forged = n_samples - n_authentic
     
-    # Authentic documents - based on real document characteristics
+    # Authentic documents - with more variance and overlap
     authentic_features = []
     for i in range(n_authentic):
-        # Image features (64 features) - realistic for authentic documents
-        img_features = np.random.normal(0.3, 0.15, 64)  # Lower mean, moderate variance
-        img_features = np.clip(img_features, 0, 1)  # Ensure valid range
+        # Image features (64 features) - more variance for authentic
+        img_features = np.random.normal(0.4, 0.2, 64)  # Higher variance
+        img_features = np.clip(img_features, 0, 1)
         
-        # OCR features (16 features) - realistic text patterns from real documents
+        # OCR features (16 features) - with overlap between classes
         ocr_features = np.array([
-            np.random.normal(300, 100),     # text_length (real documents vary)
-            np.random.normal(50, 15),       # word_count
-            np.random.normal(5.5, 1.0),     # avg_word_length
-            np.random.normal(12, 4),        # line_count
-            np.random.normal(0.6, 0.15),    # char_diversity
-            np.random.normal(0.2, 0.08),    # digit_ratio (ID cards have digits)
-            np.random.normal(0.4, 0.12),    # uppercase_ratio
-            np.random.normal(0.06, 0.03),   # punctuation_ratio
-            np.random.normal(0.7, 0.15),    # ocr_confidence
-            np.random.normal(0.15, 0.08),   # word_length_variance
-            np.random.normal(0.05, 0.03),   # suspicious_patterns (low for real)
-            np.random.normal(0.7, 0.15),    # text_consistency
-            np.random.normal(0.9, 0.08),    # extraction_success
-            np.random.normal(0.8, 0.12),    # formatting_consistency
-            np.random.normal(0.05, 0.03),   # anomaly_score (low)
-            np.random.normal(0.85, 0.1)     # quality_score
+            np.random.normal(350, 120),    # text_length (more overlap)
+            np.random.normal(60, 20),      # word_count (more overlap)
+            np.random.normal(5.8, 1.2),    # avg_word_length (more overlap)
+            np.random.normal(13, 5),       # line_count (more overlap)
+            np.random.normal(0.55, 0.18),  # char_diversity (more overlap)
+            np.random.normal(0.18, 0.1),   # digit_ratio (more overlap)
+            np.random.normal(0.45, 0.15),  # uppercase_ratio (more overlap)
+            np.random.normal(0.07, 0.04),  # punctuation_ratio (more overlap)
+            np.random.normal(0.65, 0.18),  # ocr_confidence (more overlap)
+            np.random.normal(0.18, 0.1),   # word_length_variance (more overlap)
+            np.random.normal(0.08, 0.05),  # suspicious_patterns (more overlap)
+            np.random.normal(0.65, 0.18),  # text_consistency (more overlap)
+            np.random.normal(0.85, 0.12),  # extraction_success (more overlap)
+            np.random.normal(0.75, 0.15),  # formatting_consistency (more overlap)
+            np.random.normal(0.08, 0.05),  # anomaly_score (more overlap)
+            np.random.normal(0.8, 0.12)    # quality_score (more overlap)
         ])
         
         # Ensure valid ranges
-        ocr_features = np.maximum(ocr_features, 0)  # No negative values
+        ocr_features = np.maximum(ocr_features, 0)
         
         features = np.concatenate([img_features, ocr_features])
         authentic_features.append(features)
     
-    # Forged documents - more extreme anomalies
+    # Forged documents - with less extreme differences
     forged_features = []
     for i in range(n_forged):
-        # Image features (64 features) - more extreme for forged
-        img_features = np.random.normal(0.5, 0.25, 64)  # Higher variance
+        # Image features (64 features) - closer to authentic
+        img_features = np.random.normal(0.45, 0.22, 64)  # Closer to authentic
         img_features = np.clip(img_features, 0, 1)
         
-        # OCR features (16 features) - more extreme inconsistencies
+        # OCR features (16 features) - less extreme differences
         ocr_features = np.array([
-            np.random.normal(250, 150),    # text_length (more variable)
-            np.random.normal(40, 25),      # word_count (more variable)
-            np.random.normal(6.5, 2.0),    # avg_word_length (inconsistent)
-            np.random.normal(15, 6),       # line_count (inconsistent)
-            np.random.normal(0.4, 0.2),    # char_diversity (lower)
-            np.random.normal(0.25, 0.12),  # digit_ratio (higher)
-            np.random.normal(0.5, 0.2),    # uppercase_ratio (inconsistent)
-            np.random.normal(0.1, 0.06),   # punctuation_ratio (higher)
-            np.random.normal(0.5, 0.25),    # ocr_confidence (lower)
-            np.random.normal(0.3, 0.15),   # word_length_variance (higher)
-            np.random.normal(0.2, 0.1),    # suspicious_patterns (more)
-            np.random.normal(0.5, 0.2),    # text_consistency (lower)
-            np.random.normal(0.7, 0.2),    # extraction_success (lower)
-            np.random.normal(0.6, 0.25),    # formatting_consistency (lower)
-            np.random.normal(0.25, 0.15),   # anomaly_score (higher)
-            np.random.normal(0.6, 0.2)     # quality_score (lower)
+            np.random.normal(320, 130),   # text_length (closer to authentic)
+            np.random.normal(55, 22),      # word_count (closer to authentic)
+            np.random.normal(6.2, 1.4),    # avg_word_length (closer to authentic)
+            np.random.normal(14, 6),       # line_count (closer to authentic)
+            np.random.normal(0.5, 0.2),    # char_diversity (closer to authentic)
+            np.random.normal(0.22, 0.11),  # digit_ratio (closer to authentic)
+            np.random.normal(0.48, 0.18),  # uppercase_ratio (closer to authentic)
+            np.random.normal(0.09, 0.05),  # punctuation_ratio (closer to authentic)
+            np.random.normal(0.58, 0.2),    # ocr_confidence (closer to authentic)
+            np.random.normal(0.22, 0.12),  # word_length_variance (closer to authentic)
+            np.random.normal(0.12, 0.08),  # suspicious_patterns (closer to authentic)
+            np.random.normal(0.58, 0.2),    # text_consistency (closer to authentic)
+            np.random.normal(0.8, 0.18),    # extraction_success (closer to authentic)
+            np.random.normal(0.7, 0.2),     # formatting_consistency (closer to authentic)
+            np.random.normal(0.12, 0.08),   # anomaly_score (closer to authentic)
+            np.random.normal(0.75, 0.15)   # quality_score (closer to authentic)
         ])
         
         # Ensure valid ranges
@@ -98,18 +98,18 @@ def generate_realistic_data(n_samples=2000):
     return X, y
 
 def train_svm_model(X_train, y_train, X_val, y_val):
-    """Train and tune SVM model"""
+    """Train and tune SVM model with regularization"""
     logger.info("Training SVM model...")
     
-    # Hyperparameter tuning
+    # Hyperparameter tuning with more regularization
     param_grid = {
-        'C': [0.1, 1, 10],
-        'gamma': ['scale', 'auto'],
+        'C': [0.01, 0.1, 1, 10],  # Added smaller C for more regularization
+        'gamma': ['scale', 'auto', 0.001, 0.01],  # Added smaller gamma
         'kernel': ['rbf', 'linear']
     }
     
     svm = SVC(probability=True, random_state=42)
-    grid_search = GridSearchCV(svm, param_grid, cv=3, scoring='f1', n_jobs=-1)
+    grid_search = GridSearchCV(svm, param_grid, cv=5, scoring='f1', n_jobs=-1)  # Increased CV folds
     grid_search.fit(X_train, y_train)
     
     best_svm = grid_search.best_estimator_
@@ -134,19 +134,20 @@ def train_svm_model(X_train, y_train, X_val, y_val):
     return best_svm, svm_metrics
 
 def train_rf_model(X_train, y_train, X_val, y_val):
-    """Train and tune Random Forest model"""
+    """Train and tune Random Forest model with regularization"""
     logger.info("Training Random Forest model...")
     
-    # Hyperparameter tuning
+    # Hyperparameter tuning with more regularization
     param_grid = {
         'n_estimators': [50, 100, 200],
-        'max_depth': [5, 10, None],
-        'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 4]
+        'max_depth': [3, 5, 7, 10],  # Added shallower trees
+        'min_samples_split': [5, 10, 20],  # Increased to prevent overfitting
+        'min_samples_leaf': [2, 4, 8],  # Increased to prevent overfitting
+        'max_features': ['sqrt', 'log2', 0.5]  # Added feature limiting
     }
     
     rf = RandomForestClassifier(random_state=42)
-    grid_search = GridSearchCV(rf, param_grid, cv=3, scoring='f1', n_jobs=-1)
+    grid_search = GridSearchCV(rf, param_grid, cv=5, scoring='f1', n_jobs=-1)  # Increased CV folds
     grid_search.fit(X_train, y_train)
     
     best_rf = grid_search.best_estimator_
