@@ -6,7 +6,8 @@ import pytesseract
 import re
 from typing import Dict, List, Any
 import logging
-from ml_model_svm_rf import get_document_forgery_model
+from ml_model_fantasyid import get_fantasyid_model
+from ml_model_real_world import get_real_world_model
 import os
 
 logging.basicConfig(level=logging.INFO)
@@ -44,9 +45,37 @@ if os.name == 'nt':  # Windows
 
 class DocumentAnalyzer:
     def __init__(self):
-        """Initialize the document analyzer with ML model"""
-        self.model = get_document_forgery_model()
-        logger.info("Document analyzer initialized")
+        """Initialize document analyzer with best available model"""
+        # Prefer FantasyID model first for ID-style documents (trained on FantasyID dataset)
+        try:
+            fantasyid_model = get_fantasyid_model()
+            if fantasyid_model.rf_model is not None:
+                self.model = fantasyid_model
+                logger.info("Document analyzer initialized with FantasyID model")
+                return
+        except Exception:
+            pass
+
+        # Fallback to real-world optimized model
+        try:
+            real_world_model = get_real_world_model()
+            if real_world_model.rf_model is not None:
+                self.model = real_world_model
+                logger.info("Document analyzer initialized with Real-World Optimized model")
+                return
+        except Exception:
+            pass
+
+        # Final fallback to real-world model instance (even if not fully trained)
+        # This avoids requiring the PyTorch deep model (ml_model.py / torch)
+        # so the backend can run without torch installed.
+        try:
+            self.model = get_real_world_model()
+            logger.info("Document analyzer initialized with fallback Real-World model")
+        except Exception:
+            # As a very last resort, just keep a basic FantasyID model instance
+            self.model = get_fantasyid_model()
+            logger.info("Document analyzer initialized with fallback FantasyID model")
     
     def analyze(self, file_contents: bytes, filename: str, content_type: str) -> Dict[str, Any]:
         """
@@ -69,14 +98,39 @@ class DocumentAnalyzer:
             image_features = self._extract_image_features(image)
             ocr_features = self._extract_ocr_features(ocr_text, image)
             
-            # Combine features
-            combined_features = np.concatenate([
-                image_features,
-                ocr_features
-            ])
-            
-            # Predict using ML model (with proper calibration)
-            prediction, confidence, model_details = self.model.predict(combined_features)
+            # Predict using ML model
+            if hasattr(self.model, 'predict') and hasattr(self.model, 'extract_features'):
+                # FantasyID model - save image temporarily and predict
+                import tempfile
+                from PIL import Image
+                tmp_path = None
+                try:
+                    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
+                        tmp_path = tmp.name
+                        # Convert numpy array to PIL Image before saving
+                        if isinstance(image, np.ndarray):
+                            pil_image = Image.fromarray(image)
+                        else:
+                            pil_image = image
+                        pil_image.save(tmp.name)
+                    
+                    # Predict after file is closed
+                    prediction, confidence, model_details = self.model.predict(tmp_path)
+                    
+                finally:
+                    # Clean up temp file
+                    if tmp_path and os.path.exists(tmp_path):
+                        try:
+                            os.unlink(tmp_path)
+                        except:
+                            pass  # Ignore cleanup errors
+            else:
+                # Original model - use features
+                combined_features = np.concatenate([
+                    image_features,
+                    ocr_features
+                ])
+                prediction, confidence, model_details = self.model.predict(combined_features)
             
             # Get detection details (only if forged)
             detection_details = []

@@ -58,8 +58,9 @@ class DocumentForgeryModelWrapper:
             "f1_score": 0.81
         }
         
-        # Calibration threshold (higher = fewer false positives)
-        self.forgery_threshold = 0.65  # Only flag if confidence > 65%
+        # Calibration threshold (higher = fewer false positives).
+        # We use a conservative 0.7 so borderline cases are treated as authentic.
+        self.forgery_threshold = 0.7
         
         # Load trained model if available
         self._load_model()

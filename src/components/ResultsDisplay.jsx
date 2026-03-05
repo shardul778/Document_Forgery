@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle, AlertTriangle, FileText, BarChart3 } from 'lucide-react'
+import { CheckCircle2, XCircle, AlertTriangle, FileText } from 'lucide-react'
 
 function ResultsDisplay({ results, loading, error }) {
   if (loading) {
@@ -62,7 +62,7 @@ function ResultsDisplay({ results, loading, error }) {
 
   const isForged = results.is_forged
   const confidence = results.confidence || 0
-  const metrics = results.metrics || {}
+  // Metrics are available from backend but intentionally hidden from the UI
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
@@ -93,31 +93,7 @@ function ResultsDisplay({ results, loading, error }) {
         </div>
       </div>
 
-      {/* Metrics */}
-      {Object.keys(metrics).length > 0 && (
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="w-5 h-5 text-primary-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Model Metrics</h3>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {metrics.accuracy !== undefined && (
-              <MetricCard label="Accuracy" value={metrics.accuracy} />
-            )}
-            {metrics.precision !== undefined && (
-              <MetricCard label="Precision" value={metrics.precision} />
-            )}
-            {metrics.recall !== undefined && (
-              <MetricCard label="Recall" value={metrics.recall} />
-            )}
-            {metrics.f1_score !== undefined && (
-              <MetricCard label="F1 Score" value={metrics.f1_score} />
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Detection Details */}
+      {/* Detection details are kept, OCR text is intentionally hidden from the UI */}
       {results.detection_details && (
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
@@ -138,31 +114,6 @@ function ResultsDisplay({ results, loading, error }) {
           </div>
         </div>
       )}
-
-      {/* OCR Text Preview */}
-      {results.ocr_text && (
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            Extracted Text (OCR)
-          </h3>
-          <div className="bg-gray-50 rounded-lg p-4 max-h-48 overflow-y-auto">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">
-              {results.ocr_text.substring(0, 500)}
-              {results.ocr_text.length > 500 && '...'}
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function MetricCard({ label, value }) {
-  const percentage = (value * 100).toFixed(2)
-  return (
-    <div className="bg-gray-50 rounded-lg p-4">
-      <p className="text-sm text-gray-600 mb-1">{label}</p>
-      <p className="text-2xl font-bold text-primary-600">{percentage}%</p>
     </div>
   )
 }
